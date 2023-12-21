@@ -11,7 +11,10 @@ app.use(express.json());
 
 // http://127.0.0.1:3000/
 app.use('/product',productRoute);
-app.use('/user',userRoute)
+app.use('/user',userRoute);
+
+//end points for uploads
+app.use('/getimage',express.static('./uploads'));
 
 //To let the project works and doesnt stop
 app.listen(3000, () => {

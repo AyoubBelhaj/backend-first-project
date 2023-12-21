@@ -1,10 +1,15 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const Router = express.Router();
+
 
 const User = require('../models/user');
 
+
+
 //Post request
-Router.post('/add', (req, res) => {
+/* Router.post('/add', (req, res) => {
 
     data = req.body;
     console.log(data);
@@ -18,10 +23,10 @@ Router.post('/add', (req, res) => {
             res.status.apply(400).send(err);
         })
 
-});
+}); */
 
 //Post async and await 
-Router.post('/create', async (req, res) => {
+/* Router.post('/create', async (req, res) => {
 
     try {
 
@@ -35,7 +40,56 @@ Router.post('/create', async (req, res) => {
         res.send(error);
     }
 
+}) */
+
+Router.post('/register', async (req, res) => {
+
+    data = req.body;
+    usr = new User(data);
+
+    salt = bcrypt.genSaltSync(10);
+    cryptedPassword = bcrypt.hashSync(data.password, salt);
+    usr.password = cryptedPassword;
+
+    usr.save()
+        .then(
+            (savedUser) => {
+                res.status(200).send(savedUser);
+            }
+        )
+        .catch(
+            (err) => {
+                res.status(400).send(err);
+            }
+        )
+
+
+});
+
+Router.post('/login',async (req, res) => {
+
+    data = req.body;
+    user = await User.findOne({email: data.email});
+
+    if(!user){
+        res.status(404).send('email or password invalid !');
+    }else{
+        validPass = bcrypt.compareSync(data.password,user.password);
+        if(!validPass){
+            res.status(401).send('email or password invalid !');
+        }else{
+            payload = {
+                _id: user._id,
+                email: user.email,
+                name: user.name
+            }
+            token = jwt.sign(payload, '123456');
+            res.status(200).send({mytoken: token});
+        }
+    }
+
 })
+
 
 //Get request
 Router.get('/getall', (req, res) => {
